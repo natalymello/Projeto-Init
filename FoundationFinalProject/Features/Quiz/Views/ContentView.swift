@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct ContentView: View {
+    @AppStorage("quiz.recommendedArea") private var savedRecommendation = ""
+    let onContinueToTrails: (QuizArea) -> Void
+
 
     // Estado: escolhas do usuário e controle da tela.
     @StateObject private var vm = QuizViewModel()
@@ -126,7 +129,7 @@ struct ContentView: View {
                         .foregroundColor(.quizBlue)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(15)
-                        .background(Color.white)
+                        .background(Color.appWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     VStack(spacing: 10) {
                         ForEach(questions[currentQuestion].options.indices, id: \.self) { index in
@@ -162,7 +165,7 @@ struct ContentView: View {
             }
             Text("Faça o quiz e descubra sua área ideal da tecnologia.")
                 .font(.system(size: 14))
-                .foregroundColor(Color(hex: 0x555555))
+                .foregroundColor(Color.quizBodyText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -181,7 +184,7 @@ struct ContentView: View {
         } label: {
             Text("\(option.letter)) \(option.text)")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color.appWhite)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
@@ -191,12 +194,12 @@ struct ContentView: View {
                 .overlay {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(
-                            isSelected ? Color.white : Color.clear,
+                            isSelected ? Color.appWhite : Color.appClear,
                             lineWidth: 2
                         )
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
+                .shadow(color: Color.appShadow.opacity(0.15), radius: 3, y: 2)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
@@ -210,7 +213,7 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.appWhite)
                         .frame(width: 44, height: 44)
                         .background(Color.quizBlue)
                         .clipShape(Circle())
@@ -223,7 +226,7 @@ struct ContentView: View {
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.appWhite)
                     .frame(width: 44, height: 44)
                     .background(Color.quizBlue)
                     .clipShape(Circle())
@@ -248,6 +251,7 @@ struct ContentView: View {
             }
         } else {
             withAnimation(.easeInOut(duration: 0.3)) {
+                savedRecommendation = winningArea.rawValue
                 showResult = true
             }
         }
@@ -271,6 +275,14 @@ struct ContentView: View {
                     scoreSection
                     winningAnswersSection
                     areaDescription
+                    Button { onContinueToTrails(winningArea) } label: {
+                        Label("Continuar para as trilhas", systemImage: "arrow.right")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .foregroundStyle(Color.appWhite)
+                            .background(Color.quizBlue, in: Capsule())
+                    }
                     restartButton
                         .frame(maxWidth: .infinity)
                 }
@@ -283,10 +295,10 @@ struct ContentView: View {
         }
         .task { await animateResult() }
         .background {
-            Color(hex: 0xEEEEEE).ignoresSafeArea()
+            Color.quizResultBackground.ignoresSafeArea()
         }
         .background(alignment: .top) {
-            Color(hex: 0x003F56)
+            Color.quizResultBlue
                 .frame(height: 100)
                 .ignoresSafeArea(edges: .top)
         }
@@ -299,22 +311,22 @@ struct ContentView: View {
                     bottomLeadingRadius: 24,
                     bottomTrailingRadius: 24
                 )
-                .fill(Color(hex: 0x003F56))
+                .fill(Color.quizResultBlue)
                 .frame(height: 140)
                 .background(alignment: .top) {
-                    Color(hex: 0x003F56)
+                    Color.quizResultBlue
                         .frame(height: 140)
                         .ignoresSafeArea(edges: .top)
                 }
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(hex: 0xDCDCDC))
+                    .fill(Color.quizResultIconBackground)
                     .frame(width: 132, height: 132)
                     .overlay {
                         Image(systemName: resultSymbol)
                             .font(.system(size: 56, weight: .light))
-                            .foregroundStyle(Color(hex: 0x003F56))
+                            .foregroundStyle(Color.quizResultBlue)
                     }
-                    .shadow(color: .black.opacity(0.18), radius: 3, y: 4)
+                    .shadow(color: Color.appShadow.opacity(0.18), radius: 3, y: 4)
                     .offset(y: 34)
             }
             .padding(.bottom, 46)
@@ -328,10 +340,10 @@ struct ContentView: View {
                 .padding(.horizontal, 24)
             Text("\(winningScore) de \(totalWeight) pontos")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.secondaryText)
                 .padding(.top, 8)
         }
-        .foregroundStyle(Color(hex: 0x003F56))
+        .foregroundStyle(Color.quizResultBlue)
     }
 
     private var resultSymbol: String {
@@ -360,9 +372,9 @@ struct ContentView: View {
                     }
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
-                            Capsule().fill(Color.black.opacity(0.12))
+                            Capsule().fill(Color.appShadow.opacity(0.12))
                             Capsule()
-                                .fill(Color(hex: 0x1882B9))
+                                .fill(Color.quizProgressFill)
                                 .frame(width: geometry.size.width * CGFloat(value / 100))
                         }
                     }
@@ -371,16 +383,16 @@ struct ContentView: View {
             }
             Text("Percentuais sobre os 51 pontos distribuídos entre as áreas.")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.secondaryText)
         }
-        .foregroundStyle(Color(hex: 0x003F56))
+        .foregroundStyle(Color.quizResultBlue)
     }
 
     private var winningAnswersSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Você combina com a área porque:")
                 .font(.system(size: 20))
-                .foregroundStyle(Color(hex: 0x003F56))
+                .foregroundStyle(Color.quizResultBlue)
                 .fixedSize(horizontal: false, vertical: true)
             LazyVGrid(
                 columns: [GridItem(.adaptive(minimum: 140), spacing: 18)],
@@ -391,21 +403,21 @@ struct ContentView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("\(index + 1)")
                             .font(.system(size: 17))
-                            .foregroundStyle(Color(hex: 0x003F56))
+                            .foregroundStyle(Color.quizResultBlue)
                             .frame(width: 30, height: 30)
-                            .background(Color.white, in: Circle())
+                            .background(Color.appWhite, in: Circle())
                         Text(contribution.answer)
                             .font(.system(size: 15))
                             .fixedSize(horizontal: false, vertical: true)
                         Text("\(contribution.question) · +\(contribution.points) pontos")
                             .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.85))
+                            .foregroundStyle(Color.appWhite.opacity(0.85))
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.appWhite)
                     .padding(16)
                     .frame(maxWidth: .infinity, minHeight: 160, alignment: .topLeading)
-                    .background(Color(hex: 0x456F80), in: RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: .black.opacity(0.16), radius: 2, y: 3)
+                    .background(Color.quizResultCard, in: RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: Color.appShadow.opacity(0.16), radius: 2, y: 3)
                 }
             }
         }
@@ -415,7 +427,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("O que é essa área?")
                 .font(.system(size: 23))
-                .foregroundStyle(Color(hex: 0x003F56))
+                .foregroundStyle(Color.quizResultBlue)
             VStack(alignment: .leading, spacing: 18) {
                 Text("Conhecendo \(winningArea.rawValue)")
                     .font(.system(size: 22, weight: .medium))
@@ -424,11 +436,11 @@ struct ContentView: View {
                     .lineSpacing(5)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.appWhite)
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(hex: 0x003F56), in: RoundedRectangle(cornerRadius: 22))
-            .shadow(color: .black.opacity(0.16), radius: 3, y: 3)
+            .background(Color.quizResultBlue, in: RoundedRectangle(cornerRadius: 22))
+            .shadow(color: Color.appShadow.opacity(0.16), radius: 3, y: 3)
         }
     }
 
@@ -436,10 +448,10 @@ struct ContentView: View {
         Button(action: restartQuiz) {
             Label("Refazer quiz", systemImage: "arrow.clockwise")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.appWhite)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 13)
-                .background(Color(hex: 0x003F56), in: Capsule())
+                .background(Color.quizResultBlue, in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -484,5 +496,5 @@ struct ContentView: View {
 }
 
 #Preview("iPhone 17") {
-    ContentView()
+    InitRootView()
 }
