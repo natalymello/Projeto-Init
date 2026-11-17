@@ -57,6 +57,16 @@
             value = ""
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "NOTION_DATA_SOURCE_ID"
+            value = "4148fc97-5e3a-806d-9e0b-000b2b4cde46"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "NOTION_TRAILS_DATA_SOURCE_ID"
+            value = "4108fc97-5e3a-80f2-95f1-000bd0ffefe6"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
