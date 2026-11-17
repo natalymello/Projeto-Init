@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ContentView: View {
+struct QuizView: View {
     @AppStorage("quiz.recommendedArea") private var savedRecommendation = ""
     let onContinueToTrails: (QuizArea) -> Void
 

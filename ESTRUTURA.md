@@ -12,3 +12,7 @@
 O Xcode usa um grupo sincronizado com a pasta FoundationFinalProject, incluindo automaticamente os arquivos das subpastas. Não é necessário arrastá-los novamente para o projeto.
 
 Esta organização mantém os tipos, a navegação e o funcionamento existentes. As configurações do Scheme permanecem no projeto Xcode.
+
+## Integração com o glossário
+
+`App/InitRootView.swift` reúne as abas Quiz, Trilhas e Glossário. A tela do quiz está em `Features/Quiz/Views/QuizView.swift`, com seus modelos e ViewModel em `Features/Quiz`. O glossário permanece em `Glossario/`, com consulta própria ao Notion, agrupamento alfabético e detalhe opaco. As cores compartilhadas agora vêm de `Resources/Assets.xcassets`, sem extensões duplicadas de Color. O botão Continuar do resultado preserva a recomendação e abre Trilhas.

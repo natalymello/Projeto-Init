@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 enum QuizArea: String, CaseIterable, Identifiable {
     case frontend = "Front-end"
@@ -70,3 +70,4 @@ struct QuizQuestion: Identifiable {
     let weight: Int
     let options: [QuizOption]
 }
+
