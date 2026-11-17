@@ -1,3 +1,5 @@
+> Organização atual: no Projeto-Init, o quiz está em `Quiz/QuizView.swift`; `ContentView.swift` contém as abas. As cores estão em `Shared/AppColors.swift`. A pasta `Glossario` contém a tela funcional com busca, detalhe e consulta ao Notion. A pasta externa Quiz/Quiz não foi alterada nesta reorganização.
+
 # Entendendo o quiz, do início ao resultado
 
 Este guia acompanha os dois projetos. O código do quiz é igual nas duas pastas; cada projeto tem apenas seu próprio arquivo de entrada do aplicativo. Todos os enunciados e alternativas vêm do Notion. As áreas, descrições das áreas, pesos e regras de associação ficam no Swift.
@@ -9,7 +11,9 @@ Este guia acompanha os dois projetos. O código do quiz é igual nas duas pastas
 | FoundationFinalProjectApp.swift ou QuizApp.swift | Iniciar o aplicativo e abrir ContentView. |
 | QuizModels.swift | Definir áreas, alternativas, perguntas e cores. |
 | QuizViewModel.swift | Consultar o Notion, converter os dados e controlar carregamento e erro. |
-| ContentView.swift | Mostrar perguntas, guardar escolhas, calcular resultado e animar barras. |
+| Quiz/QuizView.swift | Mostrar perguntas, guardar escolhas, calcular resultado e animar barras. |
+| ContentView.swift | Navegar entre as abas Quiz e Glossário. |
+| Shared/AppColors.swift | Definir cores compartilhadas pelas telas. |
 | Assets.xcassets | Guardar recursos visuais do aplicativo. |
 | Projeto .xcodeproj | Informar ao Xcode como montar o aplicativo. |
 
@@ -85,7 +89,7 @@ text junta os fragmentos de texto de uma propriedade Title ou Rich text. removeL
 
 Se você mudar a posição das alternativas no Notion, ajuste areas em makeQuestion. Se alterar só o texto, ele será recebido na próxima execução do app. Não é necessário alterar o Swift para mudar apenas um enunciado.
 
-## 5. ContentView.swift: estado e pontuação
+## 5. Quiz/QuizView.swift: estado e pontuação
 
 @StateObject mantém o ViewModel enquanto a tela existe. @State guarda valores da interação. @Environment lê uma preferência do sistema: accessibilityReduceMotion indica se o usuário prefere reduzir movimentos.
 
@@ -104,7 +108,7 @@ winningArea é a primeira área do ranking. winningScore consulta os pontos dela
 
 winningAnswers percorre as escolhas, mantém apenas as que contribuíram para a vencedora, ordena do maior peso para o menor e pega no máximo duas. Se apenas uma pergunta contribuiu, aparece apenas um cartão. A soma exibida no resultado continua considerando as cinco respostas, não só esses cartões.
 
-## 6. ContentView.swift: o que cada parte desenha
+## 6. Quiz/QuizView.swift: o que cada parte desenha
 
 body é a entrada visual. ZStack coloca o fundo atrás do conteúdo. A ordem das condições protege o acesso às listas: enquanto não há perguntas, mostra carregamento; se houver erro, mostra mensagem e botão de tentar novamente; depois mostra o quiz ou o resultado. .task chama load quando a tela aparece.
 
@@ -139,3 +143,20 @@ No Xcode: Product > Scheme > Edit Scheme > Run > Arguments > Environment Variabl
 Confira no simulador: carregar as perguntas, selecionar/voltar/trocar uma resposta, terminar o quiz, observar barras e percentuais, conferir os dois maiores pesos nos cartões e refazer o quiz. Sem as variáveis, deve aparecer erro, nunca perguntas locais.
 
 A estrutura do arquivo de projeto foi validada com plutil. Não foi possível compilar ou executar o simulador neste ambiente, pois as ferramentas do Xcode não estão configuradas. A execução real continua necessária para confirmar compilação, aparência e integração com sua fonte.
+
+
+## Glossário conectado ao Notion
+
+A aba Glossário usa BEARER_TOKEN (ou NOTION_TOKEN) e NOTION_GLOSSARIO_DATA_SOURCE_ID. Configure essa nova variável em Run > Arguments > Environment Variables, com o ID da fonte glossario. Mantenha NOTION_DATA_SOURCE_ID para o quiz. A integração precisa ter acesso às duas fontes.
+
+As colunas correspondem à captura: Palavra (Title), Definição (Rich text) e Tag (Rich text; também aceita Select ou Multi-select). Palavra e Definição são obrigatórias. Tag pode ficar vazia; nesse caso, o detalhe não mostra a etiqueta. A relação roadmapNode não é consultada nesta tela; ela continua disponível no Notion para uma futura navegação aos roadmaps.
+
+Não há termos locais. GlossarioViewModel.carregar lê as variáveis e publica carregamento, lista e erro. NotionGlossarioService consulta todas as páginas da fonte e converte cada registro em Termo. GlossarioView mostra os termos em ordem alfabética; a busca considera palavra, definição e tag. Ao tocar, TermoDetalheView apresenta o significado e a tag. O texto da definição é exibido sem a formatação de negrito/itálico do Notion.
+
+Atualize os dados pelo botão de seta circular ou puxando a lista para baixo. Uma fonte vazia mostra mensagem própria. Em falhas de atualização, a lista já recebida permanece visível junto com o erro e o botão de tentar novamente.
+
+Para usar Termos em alta, adicione opcionalmente uma propriedade Destaque do tipo Checkbox e marque os termos desejados. São exibidos até quatro destaques em ordem alfabética, respeitando a pesquisa. Sem essa propriedade, a seção fica oculta; não é inventado um ranking de popularidade.
+
+Referências: https://developers.notion.com/reference/query-a-data-source e https://developers.notion.com/reference/page-property-values. A leitura foi verificada com registros de teste; a consulta real depende da configuração da fonte no Xcode.
+
+Registros incompletos no glossário: linhas com Palavra ou Definição vazias são ignoradas, sem impedir a exibição dos termos completos. A tela informa a quantidade ignorada. Colunas obrigatórias ausentes ou tipos incompatíveis continuam gerando erro de configuração. Depois de completar os campos no Notion, atualize a lista pelo botão. Nenhum registro é alterado ou apagado no banco pelo aplicativo.
