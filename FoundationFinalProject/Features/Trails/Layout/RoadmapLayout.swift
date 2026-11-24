@@ -22,7 +22,7 @@ enum RoadmapOrientation {
     }
 }
 struct TrailLayoutResult {
-    var positions: [String: CGPoint]   // centro de cada nó (inclui início e FIM)
+    var positions: [String: CGPoint]   // centro de cada nó, incluindo o cartão final
     var canvas: CGSize
 }
 /// Uma linha entre dois nós. `status` é o do pré-requisito (usado na cor).
@@ -33,9 +33,7 @@ struct EdgeSpec {
     let lateral: Bool
 }
 enum TrailLayout {
-    static let startKey = "__start"
     static let endKey = "__end"
-    static let startSize = CGSize(width: 260, height: 64)
     static let endSize = CGSize(width: 200, height: 46)
     static let sideSpacing: CGFloat = 14
     static let stepGap: CGFloat = 11
@@ -65,9 +63,6 @@ enum TrailLayout {
         let lane = laneOffset(o)
         var local: [String: (a: CGFloat, c: CGFloat)] = [:]
         var cursor = padding
-        let startAlong = along(startSize, o)
-        local[startKey] = (cursor + startAlong / 2, 0)
-        cursor += startAlong
         for main in mains {
             let sides = nodes.filter { $0.layoutKind == .side && $0.dependencies.first == main.localID }
             func count(_ slot: RoadmapSlot, _ lane: RoadmapLane) -> Int {
@@ -100,7 +95,7 @@ enum TrailLayout {
         local[endKey] = (cursor + endAlong / 2, 0)
         cursor += endAlong
         let totalAlong = cursor + padding
-        var half = max(across(startSize, o), across(endSize, o)) / 2
+        var half = across(endSize, o) / 2
         for node in nodes {
             let s = size(of: node.layoutKind)
             let h = node.layoutKind == .side ? lane + across(s, o) / 2 : across(s, o) / 2
@@ -130,12 +125,6 @@ enum TrailLayout {
         let byId = Dictionary(nodes.map { ($0.localID, $0) }, uniquingKeysWith: { first, _ in first })
         let mains = nodes.filter { $0.layoutKind != .side }
         var specs: [EdgeSpec] = []
-        if let first = mains.first, let s = p[startKey], let e = p[first.localID] {
-            let pts = endpoints(fromCenter: s, fromSize: startSize,
-                                toCenter: e, toSize: size(of: first.layoutKind),
-                                lateral: false, orientation: o)
-            specs.append(EdgeSpec(start: pts.start, end: pts.end, status: nil, lateral: false))
-        }
         for node in nodes {
             guard let to = p[node.localID] else { continue }
             for depId in node.dependencies {

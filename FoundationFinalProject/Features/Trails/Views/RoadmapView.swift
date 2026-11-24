@@ -71,8 +71,6 @@ struct RoadmapView: View {
                     }
                 }
                 .frame(width: layout.canvas.width, height: layout.canvas.height)
-                TrailHeaderCard(title: currentTrail.name, icon: TrailStyle.symbol(name: currentTrail.name, fallback: currentTrail.icon))
-                    .position(layout.positions[TrailLayout.startKey] ?? .zero)
                 ForEach(nodes) { node in
                     NavigationLink {
                         TrailNodeDetailView(node: node, trailKey: currentTrail.key, trailNodes: nodes)
@@ -95,8 +93,14 @@ struct RoadmapView: View {
     private var topBar: some View {
         HStack(spacing: 12) {
             TrailMapBackButton()
-            Spacer()
+            Image(systemName: TrailStyle.symbol(name: currentTrail.name, fallback: currentTrail.icon))
+                .accessibilityHidden(true)
+            Text(currentTrail.name)
+                .accessibilityAddTraits(.isHeader)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .font(.headline)
+        .foregroundStyle(Color("Azul-marinho-init"))
         .padding(.horizontal, 16).padding(.vertical, 8)
     }
 
