@@ -10,6 +10,8 @@ struct InitRootView: View {
             GlossarioView()
                 .tabItem { Label("Glossário", systemImage: "text.book.closed") }
         }
+        .tint(Color("Azul-Init"))
+        .preferredColorScheme(.light)
     }
 }
 

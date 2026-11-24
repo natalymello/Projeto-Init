@@ -25,29 +25,37 @@ struct TrailNodeDetailView: View {
 
                 if !trimmed(node.detail).isEmpty { contentBox(node.detail) }
                 if !trimmed(node.exemple).isEmpty {
-                    section("Exemplo") { contentBox(node.exemple) }
+                    section("Exemplo") { contentBox(node.exemple, background: Color("TrailSide").opacity(0.35)) }
                 }
                 section("Status") {
                     VStack(spacing: 0) {
                         ForEach(NodeStatus.allCases, id: \.rawValue) { option in
                             Button { savedStatus = option.rawValue } label: {
                                 HStack(spacing: 9) {
-                                    Image(systemName: option.symbol).frame(width: 18)
+                                    Image(systemName: option.symbol).foregroundStyle(option.color).frame(width: 18)
                                     Text(option.label)
                                     Spacer()
-                                    if status == option { Image(systemName: "checkmark") }
+                                    if status == option {
+                                        Image(systemName: "checkmark")
+                                            .foregroundStyle(option.color)
+                                    }
                                 }
                                 .font(.system(size: 14))
-                                .foregroundStyle(option.color)
+                                .foregroundStyle(Color("Azul-marinho-init"))
                                 .padding(.horizontal, 14)
                                 .frame(minHeight: 44)
+                                .background(status == option ? option.color.opacity(0.1) : Color("AppClear"))
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                             .accessibilityAddTraits(status == option ? .isSelected : [])
                         }
                     }
-                    .background(Color.appWhite, in: RoundedRectangle(cornerRadius: 18))
+                    .background(Color("Branco-Init"), in: RoundedRectangle(cornerRadius: 18))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18)
+                            .strokeBorder(Color("RoadmapPendingBadge").opacity(0.5), lineWidth: 1)
+                    }
                 }
                 if !node.dependencies.isEmpty {
                     section("Pré-requisitos") {
@@ -66,11 +74,11 @@ struct TrailNodeDetailView: View {
                                         .font(.system(size: 14))
                                         .foregroundStyle(TrailStyle.blue)
                                         .padding(14)
-                                        .background(Color.appWhite, in: RoundedRectangle(cornerRadius: 14))
+                                        .background(Color("Branco-Init"), in: RoundedRectangle(cornerRadius: 14))
                                     }
                                     .buttonStyle(.plain)
                                 } else {
-                                    Text(dependency).font(.subheadline).foregroundStyle(Color.secondaryText)
+                                    Text(dependency).font(.subheadline).foregroundStyle(Color("Azul-marinho-init"))
                                 }
                             }
                         }
@@ -83,7 +91,11 @@ struct TrailNodeDetailView: View {
             .frame(maxWidth: 520, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
-        .background(TrailStyle.background.ignoresSafeArea())
+        .background {
+            Color("Branco-Init")
+            .background(TrailStyle.background)
+            .ignoresSafeArea()
+        }
         .overlay(alignment: .topLeading) {
             TrailMapBackButton()
                 .padding(.leading, 16)
@@ -93,20 +105,26 @@ struct TrailNodeDetailView: View {
         .toolbar(.hidden, for: .tabBar)
     }
 
-    private func contentBox(_ text: String) -> some View {
+    private func contentBox(_ text: String, background: Color = Color("Branco-Init")) -> some View {
         Text(text)
             .font(.system(size: 15))
             .lineSpacing(5)
             .foregroundStyle(TrailStyle.blue)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(Color.appWhite, in: RoundedRectangle(cornerRadius: 18))
+            .background(background, in: RoundedRectangle(cornerRadius: 18))
+            .shadow(color: Color("AppShadow").opacity(0.04), radius: 8, y: 3)
+            .overlay {
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(Color("RoadmapPendingBadge").opacity(0.5), lineWidth: 1)
+            }
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.system(size: 14)).foregroundStyle(Color.secondaryText)
+            Text(title).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color("SecondaryText"))
             content()
         }
     }
 }
+

@@ -5,7 +5,7 @@ import Combine
 @MainActor
 final class QuizViewModel: ObservableObject {
     @Published private(set) var questions: [QuizQuestion] = []
-    @Published private(set) var isLoading = false
+    private var isLoading = false
     @Published private(set) var errorMessage: String?
 
     func load() async {

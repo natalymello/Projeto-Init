@@ -1,14 +1,10 @@
-import Foundation
-
 enum QuizArea: String, CaseIterable, Identifiable {
     case frontend = "Front-end"
     case backend = "Back-end"
     case uiux = "Design UI/UX"
     case cybersecurity = "Cibersegurança"
     case devops = "DevOps"
-    var id: String {
-        rawValue
-    }
+    var id: String { rawValue }
     var description: String {
         switch self {
         case .frontend:
@@ -55,13 +51,10 @@ enum QuizArea: String, CaseIterable, Identifiable {
     }
 }
 
-struct QuizOption: Identifiable {
+struct QuizOption {
     let letter: String
     let text: String
     let area: QuizArea
-    var id: String {
-        letter
-    }
 }
 
 struct QuizQuestion: Identifiable {
@@ -70,4 +63,3 @@ struct QuizQuestion: Identifiable {
     let weight: Int
     let options: [QuizOption]
 }
-

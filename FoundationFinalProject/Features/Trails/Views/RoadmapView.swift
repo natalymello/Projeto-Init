@@ -24,7 +24,7 @@ struct RoadmapView: View {
         VStack(spacing: 0) {
             topBar
             if let error = store.errorMessage {
-                Text(error).font(.caption).foregroundStyle(Color.statusBlocked).padding(.horizontal)
+                Text(error).font(.caption).foregroundStyle(Color("Azul-marinho-init")).padding(.horizontal)
             }
             if nodes.isEmpty {
                 ContentUnavailableView("Esta trilha não possui conteúdos", systemImage: "map")
@@ -35,7 +35,7 @@ struct RoadmapView: View {
                 
             }
         }
-        .background(Color.appWhite.ignoresSafeArea())
+        .background(Color("Branco-Init").ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .onAppear { loadStatuses() }

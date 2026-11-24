@@ -25,7 +25,7 @@ struct GlossarioView: View {
                     if vm.incompletos > 0 {
                         Text("\(vm.incompletos) registro(s) sem Palavra ou Definição não foram exibidos. Complete esses campos no Notion e atualize a lista.")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color("Azul-marinho-init"))
                     }
                     if !vm.termos.isEmpty {
                         if !vm.destaques.isEmpty {
@@ -55,12 +55,12 @@ struct GlossarioView: View {
                         )
                     }
                 }
-                .foregroundStyle(Color.quizBlue)
+                .foregroundStyle(Color("Azul-Init"))
                 .padding(24)
                 .frame(maxWidth: 480)
                 .frame(maxWidth: .infinity)
             }
-            .background(Color.quizBackground)
+            .background(Color("Branco-Init"))
             .navigationTitle("Glossário")
             .searchable(text: $vm.pesquisa, prompt: "Pesquise termos aqui")
             .task { await vm.carregar() }
@@ -83,10 +83,10 @@ struct GlossarioView: View {
         Button { termoSelecionado = termo } label: {
             Text(termo.nome)
                 .font(.title3)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color("Branco-Init"))
                 .padding(20)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.quizBlue, in: RoundedRectangle(cornerRadius: 18))
+                .background(Color("Azul-Init"), in: RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(.plain)
     }
