@@ -1,11 +1,10 @@
 import SwiftUI
 
 enum TrailStyle {
-    static let background = Color.trailBackground
-    static let blue = Color.trailBlue
-    static let lighterBlue = Color.trailLighterBlue
-    static let side = Color.trailSide
-    static let gradient = LinearGradient(colors: [lighterBlue, blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let background = Color("Branco-Init")
+    static let blue = Color("Azul-Init")
+    static let side = Color("Turquesa-Init")
+    static let gradient = LinearGradient(colors: [blue, Color("Azul-marinho-init")], startPoint: .topLeading, endPoint: .bottomTrailing)
 
     static func symbol(name: String, fallback: String = "map") -> String {
         let value = name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
@@ -24,7 +23,7 @@ struct TrailMapBackButton: View {
         Button { dismiss() } label: {
             Image(systemName: "chevron.left")
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color.appWhite)
+                .foregroundStyle(Color("Branco-Init"))
                 .frame(width: 44, height: 44)
                 .background(RoadmapTheme.backBtn, in: Circle())
         }
@@ -42,12 +41,12 @@ struct TrailSelectionCard: View {
         RoundedRectangle(cornerRadius: featured ? 28 : 20)
             .fill(LinearGradient(
                 colors: featured
-                    ? [Color.trailFeaturedTop, TrailStyle.blue]
-                    : [Color.trailCardTop, Color.trailCardBottom],
+                    ? [TrailStyle.blue, Color("Azul-marinho-init")]
+                    : [Color("Azul-marinho-init"), Color("Azul-Init")],
                 startPoint: .top, endPoint: .bottom
             ))
             .aspectRatio(featured ? 2.13 : 1.27, contentMode: .fit)
-            .shadow(color: Color.appShadow.opacity(featured ? 0 : 0.2), radius: 2, y: 3)
+            .shadow(color: Color("Azul-marinho-init").opacity(featured ? 0 : 0.2), radius: 2, y: 3)
             .overlay {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .top) {
@@ -59,7 +58,7 @@ struct TrailSelectionCard: View {
                             Label {
                                 Text("trilha ideal")
                             } icon: {
-                                Image(systemName: "star.fill").foregroundStyle(Color.recommendationStar)
+                                Image(systemName: "star.fill").foregroundStyle(Color("RecommendationStar"))
                             }
                             .font(.system(size: 16, weight: .medium))
                             .foregroundStyle(TrailStyle.blue)
@@ -80,12 +79,12 @@ struct TrailSelectionCard: View {
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(TrailStyle.blue)
                                 .frame(width: 24, height: 24)
-                                .background(Color.appWhite, in: Circle())
+                                .background(Color("Branco-Init"), in: Circle())
                                 .accessibilityHidden(true)
                         }
                     }
                 }
-                .foregroundStyle(Color.appWhite)
+                .foregroundStyle(Color("Branco-Init"))
                 .padding(featured ? 19 : 14)
             }
     }

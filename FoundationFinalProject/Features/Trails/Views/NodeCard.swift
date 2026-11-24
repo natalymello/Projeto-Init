@@ -28,9 +28,9 @@ struct NodeCard: View {
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, 8)
                 .frame(width: cardWidth, height: node.side ? 34 : 44)
-                .foregroundStyle(node.side ? TrailStyle.blue : Color.appWhite)
+                .foregroundStyle(node.side ? TrailStyle.blue : Color("Branco-Init"))
                 .background(node.side ? TrailStyle.side : TrailStyle.blue, in: RoundedRectangle(cornerRadius: node.side ? 12 : 16))
-                .shadow(color: Color.appShadow.opacity(0.13), radius: 1, y: 2)
+                .shadow(color: Color("Azul-marinho-init").opacity(0.13), radius: 1, y: 2)
                 .overlay(alignment: .topTrailing) {
                     Image(systemName: status.symbol)
                         .font(.system(size: 13, weight: .semibold))

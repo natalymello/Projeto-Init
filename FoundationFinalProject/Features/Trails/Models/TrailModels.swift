@@ -70,10 +70,10 @@ enum NodeStatus: String, CaseIterable {
     }
     var color: Color {
         switch self {
-        case .todo: return Color.statusPending
-        case .current: return Color.statusCurrent
-        case .done: return Color.statusDone
-        case .blocked: return Color.statusBlocked
+        case .todo: return Color("StatusPending")
+        case .current: return Color("StatusCurrent")
+        case .done:    return Color("StatusDone")
+        case .blocked: return Color("StatusBlocked")
         }
     }
 }

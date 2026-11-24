@@ -37,16 +37,24 @@ struct TrailsView: View {
                     }
                     if let featured {
                         card(featured, featured: true)
-                            .contextMenu {
-                                Button("Refazer quiz", systemImage: "arrow.clockwise") { mostrandoQuiz = true }
-                            }
+                    }
+                    if recommendedArea != nil {
+                        Button { mostrandoQuiz = true } label: {
+                            Label("Refazer quiz", systemImage: "arrow.clockwise")
+                                .font(.title3.bold())
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 30)
+                                .foregroundStyle(Color("Branco-Init"))
+                                .background(TrailStyle.gradient, in: RoundedRectangle(cornerRadius: 24))
+                        }
+                        .buttonStyle(.plain)
                     } else {
                         Button { mostrandoQuiz = true } label: {
                             Label("Descubra sua trilha ideal", systemImage: "list.clipboard")
                                 .font(.title3.bold())
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 30)
-                                .foregroundStyle(Color.appWhite)
+                                .foregroundStyle(Color("Branco-Init"))
                                 .background(TrailStyle.gradient, in: RoundedRectangle(cornerRadius: 24))
                         }
                         .buttonStyle(.plain)

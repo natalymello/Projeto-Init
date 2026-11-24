@@ -16,14 +16,14 @@ struct TermoDetalheView: View {
                             .font(.caption)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(Color.quizBlue.opacity(0.1), in: Capsule())
+                            .background(Color("Azul-Init").opacity(0.1), in: Capsule())
                     }
                 }
-                .foregroundStyle(Color.quizBlue)
+                .foregroundStyle(Color("Azul-Init"))
                 .padding(24)
             }
-            .background(Color.quizBackground.ignoresSafeArea())
-            .toolbarBackground(Color.quizBackground, for: .navigationBar)
+            .background(Color("Branco-Init").ignoresSafeArea())
+            .toolbarBackground(Color("Branco-Init"), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -31,7 +31,7 @@ struct TermoDetalheView: View {
                 }
             }
         }
-        .presentationBackground(Color.quizBackground)
+        .presentationBackground(Color("Branco-Init"))
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
