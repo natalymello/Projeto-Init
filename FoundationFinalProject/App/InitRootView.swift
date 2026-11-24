@@ -1,26 +1,14 @@
 import SwiftUI
 
-/// Mantém o quiz e as trilhas acessíveis, mesmo sem concluir o quiz.
 struct InitRootView: View {
-    private enum Tab: Hashable { case quiz, trails, glossario }
-    @State private var selectedTab: Tab = .quiz
     @AppStorage("quiz.recommendedArea") private var savedRecommendation = ""
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            QuizView(onContinueToTrails: { _ in
-                selectedTab = .trails
-            })
-                .tabItem { Label("Quiz", systemImage: "list.clipboard") }
-                .tag(Tab.quiz)
-
+        TabView {
             TrailsView(recommendedArea: QuizArea(rawValue: savedRecommendation))
-                .tabItem { Label("Trilhas", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
-                .tag(Tab.trails)
-
+                .tabItem { Label("Trilhas", systemImage: "signpost.right.and.left") }
             GlossarioView()
-                .tabItem { Label("Glossário", systemImage: "book") }
-                .tag(Tab.glossario)
+                .tabItem { Label("Glossário", systemImage: "text.book.closed") }
         }
     }
 }
