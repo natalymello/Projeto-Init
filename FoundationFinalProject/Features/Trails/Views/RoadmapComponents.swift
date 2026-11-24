@@ -69,25 +69,6 @@ struct RoadmapNodeView: View {
             .animation(.easeInOut(duration: 0.2), value: status)
     }
 }
-struct TrailHeaderCard: View {
-    let title: String
-    let icon: String
-    var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 28))
-            Text(title)
-                .font(.system(size: 26))
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-        }
-        .foregroundStyle(Color("Branco-Init"))
-        .padding(.horizontal, 12)
-        .frame(width: TrailLayout.startSize.width, height: TrailLayout.startSize.height)
-        .background(RoadmapTheme.navy, in: RoundedRectangle(cornerRadius: 16))
-        .shadow(color: Color("Azul-marinho-init").opacity(0.25), radius: 4, y: 3)
-    }
-}
 struct TrailEndPill: View {
     var body: some View {
         Text("Próximos Passos")
