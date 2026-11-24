@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TrailsView: View {
     var recommendedArea: QuizArea? = nil
+    @State private var mostrandoQuiz = false
     @StateObject private var store = TrailsStore()
 
     private var featured: NotionTrail? {
@@ -12,7 +13,12 @@ struct TrailsView: View {
     }
 
     private var remaining: [NotionTrail] {
-        store.trails.filter { $0.id != featured?.id }
+        let ordem = ["terminal", "macwindow.and.cursorarrow", "lock.shield", "paintbrush.pointed", "infinity"]
+        return store.trails.filter { $0.id != featured?.id }.sorted { a, b in
+            let primeiro = ordem.firstIndex(of: TrailStyle.symbol(name: a.name)) ?? ordem.count
+            let segundo = ordem.firstIndex(of: TrailStyle.symbol(name: b.name)) ?? ordem.count
+            return primeiro < segundo
+        }
     }
 
     var body: some View {
@@ -31,6 +37,19 @@ struct TrailsView: View {
                     }
                     if let featured {
                         card(featured, featured: true)
+                            .contextMenu {
+                                Button("Refazer quiz", systemImage: "arrow.clockwise") { mostrandoQuiz = true }
+                            }
+                    } else {
+                        Button { mostrandoQuiz = true } label: {
+                            Label("Descubra sua trilha ideal", systemImage: "list.clipboard")
+                                .font(.title3.bold())
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 30)
+                                .foregroundStyle(Color.appWhite)
+                                .background(TrailStyle.gradient, in: RoundedRectangle(cornerRadius: 24))
+                        }
+                        .buttonStyle(.plain)
                     }
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible())], spacing: 20) {
                         ForEach(remaining) { trail in card(trail) }
@@ -38,7 +57,7 @@ struct TrailsView: View {
                 }
                 .frame(maxWidth: 390)
                 .padding(.horizontal, 24)
-                .padding(.top, 55)
+                .padding(.top, 12)
                 .padding(.bottom, 32)
                 .frame(maxWidth: .infinity)
             }
@@ -46,6 +65,16 @@ struct TrailsView: View {
             .toolbar(.hidden, for: .navigationBar)
             .refreshable { await store.load() }
             .task { if store.trails.isEmpty { await store.load() } }
+        }
+        .sheet(isPresented: $mostrandoQuiz) {
+            NavigationStack {
+                QuizView { _ in mostrandoQuiz = false }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Fechar") { mostrandoQuiz = false }
+                        }
+                    }
+            }
         }
         .tint(TrailStyle.blue)
         .preferredColorScheme(.light)
