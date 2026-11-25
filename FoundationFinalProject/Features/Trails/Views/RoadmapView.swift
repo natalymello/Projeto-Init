@@ -3,12 +3,8 @@ import SwiftUI
 struct RoadmapView: View {
     let trail: NotionTrail
     @ObservedObject var store: TrailsStore
-    @State private var orientation: RoadmapOrientation = .vertical
-    @State private var edgeShape: EdgeShape = .straight
-    @State private var dashed = false
-    @State private var showArrows = false
-    @State private var colorByStatus = false
     @State private var savedStatuses: [String: String] = [:]
+    @State private var showingTrailQuiz = false
 
     private var currentTrail: NotionTrail {
         store.trails.first { $0.key == trail.key } ?? trail
@@ -40,6 +36,9 @@ struct RoadmapView: View {
         .toolbar(.hidden, for: .tabBar)
         .onAppear { loadStatuses() }
         .onChange(of: currentTrail.key) { loadStatuses() }
+        .sheet(isPresented: $showingTrailQuiz) {
+            TrailQuizView(trailKey: currentTrail.key, trailName: currentTrail.name)
+        }
         .preferredColorScheme(.light)
     }
 
@@ -55,19 +54,14 @@ struct RoadmapView: View {
     }
 
     private func canvas(container: CGSize) -> some View {
-        let layout = TrailLayout.compute(for: nodes, orientation: orientation, container: container)
-        let edges = TrailLayout.edges(for: nodes, layout: layout, orientation: orientation, statusForNode: status)
+        let layout = TrailLayout.compute(for: nodes, container: container)
+        let edges = TrailLayout.edges(for: nodes, layout: layout)
         return ScrollView([.horizontal, .vertical]) {
             ZStack(alignment: .topLeading) {
                 Canvas { context, _ in
                     for edge in edges {
-                        let path = TrailLayout.edgePath(start: edge.start, end: edge.end, orientation: orientation, shape: edgeShape)
-                        let color = colorByStatus ? (edge.status?.color.opacity(0.85) ?? RoadmapTheme.line) : RoadmapTheme.line
-                        context.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: edge.lateral ? 4 : 5, lineCap: .round, lineJoin: .round, dash: dashed ? [8, 6] : []))
-                        if showArrows {
-                            let angle = TrailLayout.arrowAngle(start: edge.start, end: edge.end, orientation: orientation, shape: edgeShape)
-                            context.fill(TrailLayout.arrowHead(at: edge.end, angle: angle, size: 12), with: .color(color))
-                        }
+                        let path = TrailLayout.edgePath(start: edge.start, end: edge.end)
+                        context.stroke(path, with: .color(RoadmapTheme.line), style: StrokeStyle(lineWidth: edge.lateral ? 4 : 5, lineCap: .round, lineJoin: .round))
                     }
                 }
                 .frame(width: layout.canvas.width, height: layout.canvas.height)
@@ -81,13 +75,13 @@ struct RoadmapView: View {
                     .accessibilityLabel("\(node.name), \(status(for: node).label)")
                     .position(layout.positions[node.localID] ?? .zero)
                 }
-                TrailEndPill()
+                TrailEndPill { showingTrailQuiz = true }
                     .position(layout.positions[TrailLayout.endKey] ?? .zero)
             }
             .frame(width: layout.canvas.width, height: layout.canvas.height)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .id("\(currentTrail.key)-\(orientation == .vertical)")
+        .id(currentTrail.key)
     }
 
     private var topBar: some View {
@@ -102,15 +96,5 @@ struct RoadmapView: View {
         .font(.headline)
         .foregroundStyle(Color("Azul-marinho-init"))
         .padding(.horizontal, 16).padding(.vertical, 8)
-    }
-
-    
-    @ViewBuilder private var legendItems: some View {
-        ForEach(NodeStatus.allCases, id: \.rawValue) { status in
-            HStack(spacing: 5) {
-                Circle().fill(status.color).frame(width: 10, height: 10)
-                Text(status.label).font(.caption).foregroundStyle(RoadmapTheme.sideText)
-            }
-        }
     }
 }

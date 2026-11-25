@@ -70,12 +70,17 @@ struct RoadmapNodeView: View {
     }
 }
 struct TrailEndPill: View {
+    let action: () -> Void
+
     var body: some View {
-        Text("Próximos Passos")
-            .font(.system(size: 17, weight: .medium))
-            .foregroundStyle(Color("Branco-Init"))
-            .frame(width: TrailLayout.endSize.width, height: TrailLayout.endSize.height)
-            .background(RoadmapTheme.navy, in: RoundedRectangle(cornerRadius: 16))
-            .shadow(color: Color("Azul-marinho-init").opacity(0.25), radius: 4, y: 3)
+        Button(action: action) {
+            Text("Fazer questionário")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(Color("Branco-Init"))
+                .frame(width: TrailLayout.endSize.width, height: TrailLayout.endSize.height)
+                .background(RoadmapTheme.navy, in: RoundedRectangle(cornerRadius: 16))
+                .shadow(color: Color("Azul-marinho-init").opacity(0.25), radius: 4, y: 3)
+        }
+        .buttonStyle(.plain)
     }
 }
