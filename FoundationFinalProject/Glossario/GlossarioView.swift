@@ -22,14 +22,10 @@ struct GlossarioView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    if vm.incompletos > 0 {
-                        Text("\(vm.incompletos) registro(s) sem Palavra ou Definição não foram exibidos. Complete esses campos no Notion e atualize a lista.")
-                            .font(.caption)
-                            .foregroundStyle(Color("Azul-marinho-init"))
-                    }
+
                     if !vm.termos.isEmpty {
                         if !vm.destaques.isEmpty {
-                            Text("Termos em alta 🔥").font(.title2.bold())
+                            Text("Termos em alta").font(.title2.bold())
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140))]) {
                                 ForEach(vm.destaques) { termo in botao(termo) }
                             }
@@ -65,14 +61,6 @@ struct GlossarioView: View {
             .searchable(text: $vm.pesquisa, prompt: "Pesquise termos aqui")
             .task { await vm.carregar() }
             .refreshable { await vm.carregar(atualizar: true) }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Atualizar", systemImage: "arrow.clockwise") {
-                        Task { await vm.carregar(atualizar: true) }
-                    }
-                    .disabled(vm.carregando)
-                }
-            }
             .sheet(item: $termoSelecionado) { termo in
                 TermoDetalheView(termo: termo)
             }
