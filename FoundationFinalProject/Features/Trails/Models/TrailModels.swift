@@ -35,9 +35,6 @@ func trimmed(_ text: String) -> String {
 extension NotionNode {//extension adiciona funcionalidades a um tipo existente
     var localID: String { trimmed(nodeID) }
     var side: Bool { trimmed(kind).lowercased() == "side" }
-    var before: Bool { trimmed(slot).lowercased() != "after" }
-    var x: CGFloat { side ? (trimmed(lane).lowercased() == "high" ? 330 : 90) : 210 }
-    var width: CGFloat { side ? 140 : (trimmed(kind).lowercased() == "small" ? 140 : 200) }
     //transforma texto simples em um array
     var dependencies: [String] { dependsOn.split(separator: ",").map { trimmed(String($0)) }.filter { !$0.isEmpty } }
 }

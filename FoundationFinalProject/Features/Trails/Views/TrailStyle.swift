@@ -3,7 +3,6 @@ import SwiftUI
 enum TrailStyle {
     static let background = Color("Branco-Init")
     static let blue = Color("Azul-Init")
-    static let side = Color("Turquesa-Init")
     static let gradient = LinearGradient(colors: [blue, Color("Azul-marinho-init")], startPoint: .topLeading, endPoint: .bottomTrailing)
 
     static func symbol(name: String, fallback: String = "map") -> String {
