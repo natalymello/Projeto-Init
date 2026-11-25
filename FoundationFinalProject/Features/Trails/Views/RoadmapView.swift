@@ -99,9 +99,10 @@ struct RoadmapView: View {
                 .accessibilityAddTraits(.isHeader)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .font(.headline)
+        .font(.system(size:22, weight: .semibold))
         .foregroundStyle(Color("Azul-marinho-init"))
         .padding(.horizontal, 16).padding(.vertical, 8)
+        
     }
 
     
