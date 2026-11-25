@@ -67,6 +67,11 @@
             value = "4108fc97-5e3a-80f2-95f1-000bd0ffefe6"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "NOTION_GLOSSARIO_DATA_SOURCE_ID"
+            value = "40d8fc97-5e3a-80dd-9e9d-000bed28061f"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
