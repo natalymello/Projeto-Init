@@ -46,7 +46,7 @@ final class TrailsStore: ObservableObject {
         } catch is CancellationError {
             // A saída da tela pode cancelar o carregamento.
         } catch {
-            errorMessage = "Não foi possível carregar as trilhas. Tente atualizar novamente."
+            errorMessage = "Não foi possível carregar as trilhas: \(error.localizedDescription)"
         }
     }
 }
