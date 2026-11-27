@@ -35,7 +35,7 @@ final class TrailQuizStore: ObservableObject {
         do {
             guard !token.isEmpty, !source.isEmpty else {
                 throw TrailQuizError.message(
-                    "Configure BEARER_TOKEN e NOTION_TRAIL_QUIZ_DATA_SOURCE_ID no Scheme do Xcode."
+                    "Configure BEARER_TOKEN e NOTION_TRAIL_QUIZ_DATA_SOURCE_ID (ID da tabela questionario) no Scheme do Xcode."
                 )
             }
             questions = try await TrailQuizService.fetch(
@@ -68,73 +68,147 @@ private enum TrailQuizService {
             throw TrailQuizError.message("O ID da fonte do questionário está inválido.")
         }
 
+        let questionnaires = try await query(url: url, token: token)
+        let wantedKey = trailGroupKey(trailKey)
+        guard let questionnaire = questionnaires.first(where: { record in
+            guard let properties = record["properties"] as? [String: Any] else { return false }
+            return trailGroupKey(text(["Name", "name"], in: properties)) == wantedKey
+        }),
+        let properties = questionnaire["properties"] as? [String: Any],
+        let questionIDs = relationIDs("pergunta", in: properties), !questionIDs.isEmpty else {
+            throw TrailQuizError.message(
+                "Não encontrei perguntas para a trilha '\(trailKey)'. Confira o nome do grupo e a relação 'pergunta' na tabela questionario."
+            )
+        }
+
         var questions: [TrailQuizQuestion] = []
+        for (index, id) in questionIDs.enumerated() {
+            let record = try await fetchPage(id: id, token: token)
+            guard let properties = record["properties"] as? [String: Any] else { continue }
+            if let question = try makeQuestion(
+                record: record,
+                properties: properties,
+                fallbackOrder: index + 1
+            ) {
+                questions.append(question)
+            }
+        }
+        return questions.sorted { $0.order < $1.order }
+    }
+
+    private static func query(url: URL, token: String) async throws -> [[String: Any]] {
+        var records: [[String: Any]] = []
         var cursor: String?
-
         repeat {
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            request.setValue("2025-09-03", forHTTPHeaderField: "Notion-Version")
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+            var request = makeRequest(url: url, token: token, method: "POST")
             var body: [String: Any] = ["page_size": 100]
             if let cursor { body["start_cursor"] = cursor }
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let response = response as? HTTPURLResponse,
-                  (200..<300).contains(response.statusCode) else {
-                throw TrailQuizError.message(
-                    "Não foi possível consultar o questionário. Confira o token, o ID da fonte e o acesso da integração."
-                )
+            let json = try await send(request)
+            guard let page = json["results"] as? [[String: Any]] else {
+                throw TrailQuizError.message("O Notion retornou os dados do questionário em formato inesperado.")
             }
-            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let records = json["results"] as? [[String: Any]] else {
-                throw TrailQuizError.message("O Notion retornou os dados em um formato inesperado.")
-            }
-
-            for record in records {
-                guard let properties = record["properties"] as? [String: Any],
-                      text("Key_trilha", in: properties) == trailKey,
-                      let question = makeQuestion(record: record, properties: properties) else {
-                    continue
-                }
-                questions.append(question)
-            }
-
+            records += page
             if json["has_more"] as? Bool == true {
-                guard let nextCursor = json["next_cursor"] as? String else {
+                guard let next = json["next_cursor"] as? String else {
                     throw TrailQuizError.message("O Notion não enviou a próxima página do questionário.")
                 }
-                cursor = nextCursor
+                cursor = next
             } else {
                 cursor = nil
             }
         } while cursor != nil
+        return records
+    }
 
-        return questions.sorted { $0.order < $1.order }
+    private static func fetchPage(id: String, token: String) async throws -> [String: Any] {
+        guard let url = URL(string: "https://api.notion.com/v1/pages/\(id)") else {
+            throw TrailQuizError.message("O Notion enviou o ID inválido de uma pergunta.")
+        }
+        return try await send(makeRequest(url: url, token: token, method: "GET"))
+    }
+
+    private static func makeRequest(url: URL, token: String, method: String) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("2025-09-03", forHTTPHeaderField: "Notion-Version")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        return request
+    }
+
+    private static func send(_ request: URLRequest) async throws -> [String: Any] {
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let response = response as? HTTPURLResponse else {
+            throw TrailQuizError.message("Resposta de rede inválida ao buscar o questionário.")
+        }
+        guard (200..<300).contains(response.statusCode) else {
+            throw TrailQuizError.message(
+                "Erro HTTP \(response.statusCode) ao consultar o Notion. Confira o token, a fonte e o acesso da integração."
+            )
+        }
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw TrailQuizError.message("O Notion retornou os dados em um formato inesperado.")
+        }
+        return json
+    }
+
+    private static func relationIDs(_ name: String, in properties: [String: Any]) -> [String]? {
+        guard let property = properties[name] as? [String: Any],
+              let relations = property["relation"] as? [[String: Any]] else { return nil }
+        return relations.compactMap { $0["id"] as? String }
+    }
+
+    private static func removingOptionLabel(from option: String, letter: String) -> String {
+        let value = option.trimmingCharacters(in: .whitespacesAndNewlines)
+        for prefix in ["\(letter))", "\(letter)."] where value.uppercased().hasPrefix(prefix) {
+            return String(value.dropFirst(prefix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return value
+    }
+
+    private static func trailGroupKey(_ value: String) -> String {
+        let normalized = value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "pt_BR"))
+            .filter { $0.isLetter || $0.isNumber }
+            .replacingOccurrences(of: "perguntas", with: "")
+        if normalized == "back" { return "backend" }
+        if normalized == "front" { return "frontend" }
+        if normalized.contains("backend") { return "backend" }
+        if normalized.contains("frontend") { return "frontend" }
+        if normalized.contains("devops") { return "devops" }
+        if normalized.contains("ciber") || normalized.contains("cyber") { return "ciberseguranca" }
+        if normalized.contains("design") || normalized.contains("uiux") { return "design" }
+        return normalized
     }
 
     private static func makeQuestion(
         record: [String: Any],
-        properties: [String: Any]
-    ) -> TrailQuizQuestion? {
-        let prompt = text("Pergunta", in: properties)
-        let correctAnswer = text("Resposta_correta", in: properties)
-        let options = ["A", "B", "C", "D"].map {
-            text("Alternativa_\($0)", in: properties)
+        properties: [String: Any],
+        fallbackOrder: Int
+    ) throws -> TrailQuizQuestion? {
+        let prompt = text(["pergunta", "Pergunta"], in: properties)
+        let options = ["A", "B", "C", "D"].map { letter in
+            let option = text(["\(letter)_alternativa", "alternativa_\(letter)", "Alternativa_\(letter)"], in: properties)
+            return removingOptionLabel(from: option, letter: letter)
         }
-        guard !prompt.isEmpty,
-              !correctAnswer.isEmpty,
-              options.allSatisfy({ !$0.isEmpty }),
-              let id = record["id"] as? String else {
+        guard !prompt.isEmpty, options.allSatisfy({ !$0.isEmpty }), let id = record["id"] as? String else {
             return nil
         }
 
-        let order = number("Ordem", in: properties) ?? 0
-        let points = number("Pontos", in: properties) ?? 1
-        let explanation = text("Explicacao", in: properties)
+        let correctAnswer = text(
+            ["resposta_correta", "Resposta_correta", "Resposta correta", "Gabarito"],
+            in: properties
+        )
+        guard ["A", "B", "C", "D"].contains(correctAnswer.uppercased()) else {
+            throw TrailQuizError.message(
+                "Adicione à tabela a coluna Resposta_correta (texto ou seleção) e informe A, B, C ou D para cada pergunta."
+            )
+        }
+
+        let order = number(["Ordem", "ordem"], in: properties) ?? fallbackOrder
+        let points = number(["Pontos", "pontos"], in: properties) ?? 1
+        let explanation = text(["Explicacao", "Explicação", "explicacao"], in: properties)
         return TrailQuizQuestion(
             id: id,
             order: order,
@@ -146,8 +220,8 @@ private enum TrailQuizService {
         )
     }
 
-    private static func text(_ name: String, in properties: [String: Any]) -> String {
-        guard let property = properties[name] as? [String: Any],
+    private static func text(_ names: [String], in properties: [String: Any]) -> String {
+        guard let property = names.lazy.compactMap({ properties[$0] as? [String: Any] }).first,
               let type = property["type"] as? String else { return "" }
 
         if type == "select" {
@@ -158,8 +232,8 @@ private enum TrailQuizService {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private static func number(_ name: String, in properties: [String: Any]) -> Int? {
-        guard let property = properties[name] as? [String: Any],
+    private static func number(_ names: [String], in properties: [String: Any]) -> Int? {
+        guard let property = names.lazy.compactMap({ properties[$0] as? [String: Any] }).first,
               let value = property["number"] as? NSNumber else { return nil }
         return value.intValue
     }
