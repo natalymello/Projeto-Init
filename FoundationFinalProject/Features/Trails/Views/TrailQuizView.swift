@@ -8,9 +8,14 @@ struct TrailQuizView: View {
     @StateObject private var store = TrailQuizStore()
     @State private var questionIndex = 0
     @State private var selectedOption: String?
-    @State private var answered = false
-    @State private var score = 0
+    @State private var userAnswers: [String: String] = [:]
     @State private var finished = false
+
+    private var score: Int {
+        store.questions.reduce(0) { total, question in
+            total + (userAnswers[question.id] == question.correctAnswer ? question.points : 0)
+        }
+    }
 
     private var question: TrailQuizQuestion? {
         guard store.questions.indices.contains(questionIndex) else { return nil }
@@ -95,42 +100,59 @@ struct TrailQuizView: View {
 
                 ForEach(Array(question.options.enumerated()), id: \.offset) { index, option in
                     let letter = ["A", "B", "C", "D"][index]
-                    optionButton(letter: letter, text: option)
-                }
-
-                if answered {
-                    Text(selectedOption == question.correctAnswer ? "Correto! +\(question.points) pontos" : "A resposta certa era \(question.correctAnswer).")
-                        .font(.headline)
-                        .foregroundStyle(selectedOption == question.correctAnswer ? Color("StatusDone") : Color("StatusBlocked"))
-                    if !question.explanation.isEmpty {
-                        Text(question.explanation)
-                            .foregroundStyle(Color("Azul-marinho-init"))
-                    }
-                    Button(questionIndex == store.questions.count - 1 ? "Ver resultado" : "Próxima pergunta") {
-                        advance()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                } else {
-                    Button("Responder") {
-                        submit(question)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(selectedOption == nil)
-                    .frame(maxWidth: .infinity)
+                    optionButton(letter: letter, text: option, question: question)
                 }
             }
             .padding(15)
             .frame(maxWidth: 520)
             .frame(maxWidth: .infinity)
         }
+        .safeAreaInset(edge: .bottom) {
+            HStack {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        goBack()
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 23, weight: .medium))
+                        .foregroundStyle(Color("Branco-Init"))
+                        .frame(width: 58, height: 58)
+                        .background(Color("Azul-Init"), in: Circle())
+                }
+                .accessibilityLabel("Pergunta anterior")
+                .disabled(questionIndex == 0)
+                .opacity(questionIndex == 0 ? 0.4 : 1)
+
+                Spacer()
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        advance()
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 23, weight: .medium))
+                        .foregroundStyle(Color("Branco-Init"))
+                        .frame(width: 58, height: 58)
+                        .background(Color("Azul-Init"), in: Circle())
+                }
+                .accessibilityLabel(questionIndex == store.questions.count - 1 ? "Ver resultado" : "Próxima pergunta")
+                .disabled(selectedOption == nil)
+                .opacity(selectedOption == nil ? 0.4 : 1)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
+            .background(Color("Branco-Init"))
+        }
     }
 
-    private func optionButton(letter: String, text: String) -> some View {
+    private func optionButton(letter: String, text: String, question: TrailQuizQuestion) -> some View {
         let isSelected = selectedOption == letter
         return Button {
-            guard !answered else { return }
             selectedOption = letter
+            userAnswers[question.id] = letter
         } label: {
             HStack(alignment: .top, spacing: 10) {
                 Text("\(letter))")
@@ -145,37 +167,133 @@ struct TrailQuizView: View {
     }
 
     private var resultScreen: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 54))
-                .foregroundStyle(Color("StatusDone"))
-            Text("Questionário concluído")
-                .font(.title2.bold())
-                .foregroundStyle(Color("Azul-Init"))
-            Text("Você fez \(score) de \(store.questions.reduce(0) { $0 + $1.points }) pontos.")
-                .font(.headline)
-                .foregroundStyle(Color("Azul-marinho-init"))
-            Button("Fechar") { dismiss() }
-                .buttonStyle(.borderedProminent)
+        let totalPoints = store.questions.reduce(0) { $0 + $1.points }
+        let correctCount = store.questions.filter { userAnswers[$0.id] == $0.correctAnswer }.count
+        let wrongCount = store.questions.count - correctCount
+
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                VStack(spacing: 12) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 48))
+                        .foregroundStyle(Color("StatusDone"))
+                    Text("Questionário concluído")
+                        .font(.title2.bold())
+                        .foregroundStyle(Color("Azul-Init"))
+                    Text("Você fez \(score) de \(totalPoints) pontos")
+                        .font(.headline)
+                        .foregroundStyle(Color("Azul-marinho-init"))
+
+                    HStack(spacing: 12) {
+                        resultCount("Acertos", value: correctCount, color: Color("StatusDone"))
+                        resultCount("Erros", value: wrongCount, color: Color("StatusBlocked"))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(20)
+                .background(Color("AppClear"), in: RoundedRectangle(cornerRadius: 22))
+
+                Text("Revisão das respostas")
+                    .font(.title3.bold())
+                    .foregroundStyle(Color("Azul-Init"))
+                    .padding(.top, 4)
+
+                ForEach(store.questions.indices, id: \.self) { index in
+                    answerReview(store.questions[index], number: index + 1)
+                }
+
+            }
+            .padding(20)
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
         }
-        .padding(24)
     }
 
-    private func submit(_ question: TrailQuizQuestion) {
-        guard let selectedOption else { return }
-        if selectedOption == question.correctAnswer {
-            score += question.points
+    private func resultCount(_ title: String, value: Int, color: Color) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: title == "Acertos" ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .foregroundStyle(color)
+            Text("\(value) \(title.lowercased())")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color("Azul-marinho-init"))
         }
-        answered = true
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color("Branco-Init"), in: Capsule())
+    }
+
+    private func answerReview(_ question: TrailQuizQuestion, number: Int) -> some View {
+        let chosenAnswer = userAnswers[question.id] ?? ""
+        let wasCorrect = chosenAnswer == question.correctAnswer
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Pergunta \(number)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color("Azul-Init"))
+                Spacer()
+                Label(wasCorrect ? "Acertou" : "Errou", systemImage: wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(wasCorrect ? Color("StatusDone") : Color("StatusBlocked"))
+            }
+            Text(question.prompt)
+                .font(.body.weight(.medium))
+                .foregroundStyle(Color("Azul-marinho-init"))
+            answerLine("Sua resposta", letter: chosenAnswer, question: question)
+            if !wasCorrect {
+                answerLine("Resposta correta", letter: question.correctAnswer, question: question)
+            }
+            if !question.explanation.isEmpty {
+                Text(question.explanation)
+                    .font(.subheadline)
+                    .foregroundStyle(Color("Azul-marinho-init"))
+                    .padding(.top, 2)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color("AppClear"), in: RoundedRectangle(cornerRadius: 18))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(wasCorrect ? Color("StatusDone").opacity(0.4) : Color("StatusBlocked").opacity(0.4), lineWidth: 1)
+        }
+    }
+
+    private func answerLine(_ title: String, letter: String, question: TrailQuizQuestion) -> some View {
+        let text = optionText(letter, in: question)
+        return VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color("SecondaryText"))
+            Text(letter.isEmpty ? "Não respondida" : "\(letter)) \(text)")
+                .font(.subheadline)
+                .foregroundStyle(Color("Azul-marinho-init"))
+        }
+    }
+
+    private func optionText(_ letter: String, in question: TrailQuizQuestion) -> String {
+        let letters = ["A", "B", "C", "D"]
+        guard let index = letters.firstIndex(of: letter), question.options.indices.contains(index) else {
+            return ""
+        }
+        return question.options[index]
     }
 
     private func advance() {
+        guard let answer = selectedOption else { return }
+        userAnswers[store.questions[questionIndex].id] = answer
+
         if questionIndex == store.questions.count - 1 {
             finished = true
         } else {
             questionIndex += 1
-            selectedOption = nil
-            answered = false
+            selectedOption = userAnswers[store.questions[questionIndex].id]
         }
+    }
+
+    private func goBack() {
+        guard questionIndex > 0 else { return }
+        questionIndex -= 1
+        selectedOption = userAnswers[store.questions[questionIndex].id]
     }
 }
