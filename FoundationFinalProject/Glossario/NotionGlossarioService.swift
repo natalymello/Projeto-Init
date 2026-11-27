@@ -73,10 +73,19 @@ enum NotionGlossarioService {
             // Um rascunho vazio não deve bloquear os outros termos.
             return nil
         }
-        let area = try texto("Tag", campos: campos, opcional: true)
+        let tags: [String]
+        if let campo = campos["Tag"] as? [String: Any], campo["type"] as? String == "multi_select" {
+            tags = (campo["multi_select"] as? [[String: Any]] ?? [])
+                .compactMap { $0["name"] as? String }
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+        } else {
+            let tag = try texto("Tag", campos: campos, opcional: true)
+            tags = tag.isEmpty ? [] : [tag]
+        }
         // Destaque é opcional; a tabela da captura não precisa ser modificada.
         let destaque = (campos["Destaque"] as? [String: Any])?["checkbox"] as? Bool ?? false
-        return Termo(id: id, nome: nome, significado: significado, area: area, destaque: destaque)
+        return Termo(id: id, nome: nome, significado: significado, tags: tags, destaque: destaque)
     }
 
     private static func texto(_ nome: String, campos: [String: Any], opcional: Bool = false) throws -> String {

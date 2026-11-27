@@ -3,6 +3,7 @@ import SwiftUI
 struct GlossarioView: View {
     @StateObject private var vm = GlossarioViewModel()
     @State private var termoSelecionado: Termo?
+    private let margem: CGFloat = 24
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,10 @@ struct GlossarioView: View {
                     }
 
                     if !vm.termos.isEmpty {
+                        if !vm.tags.isEmpty {
+                            filtroPorTag
+                                .padding(.horizontal, -margem)
+                        }
                         if !vm.destaques.isEmpty {
                             Text("Termos em alta").font(.title2.bold())
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140))]) {
@@ -52,8 +57,7 @@ struct GlossarioView: View {
                     }
                 }
                 .foregroundStyle(Color("Azul-Init"))
-                .padding(24)
-                .frame(maxWidth: 480)
+                .padding(margem)
                 .frame(maxWidth: .infinity)
             }
             .background(Color("Branco-Init"))
@@ -65,6 +69,47 @@ struct GlossarioView: View {
                 TermoDetalheView(termo: termo)
             }
         }
+    }
+
+    private var filtroPorTag: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 8) {
+                opcaoDeFiltro("Todos", tag: nil)
+                ForEach(vm.tags, id: \.self) { tag in
+                    opcaoDeFiltro(tag, tag: tag)
+                }
+            }
+        }
+        .defaultScrollAnchor(.leading)
+        .scrollIndicators(.hidden)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Filtrar por tag")
+    }
+
+    private func opcaoDeFiltro(_ titulo: String, tag: String?) -> some View {
+        let selecionado = vm.tagSelecionada == tag
+
+        return Button {
+            vm.tagSelecionada = tag
+        } label: {
+            Text(titulo)
+                .font(.subheadline.weight(.semibold))
+                .fixedSize(horizontal: true, vertical: false)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .frame(minHeight: 44)
+                .foregroundStyle(selecionado ? Color("Branco-Init") : Color("Azul-Init"))
+                .background {
+                    if selecionado {
+                        Capsule().fill(Color("Azul-Init"))
+                    } else {
+                        Capsule().fill(.quaternary)
+                    }
+                }
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selecionado ? .isSelected : [])
     }
 
     private func botao(_ termo: Termo) -> some View {

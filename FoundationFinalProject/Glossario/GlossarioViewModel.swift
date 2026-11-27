@@ -8,12 +8,18 @@ final class GlossarioViewModel: ObservableObject {
     @Published private(set) var erro: String?
     @Published private(set) var incompletos = 0
     @Published var pesquisa = ""
+    @Published var tagSelecionada: String?
     private var carregou = false
+
+    var tags: [String] {
+        Set(termos.flatMap(\.tags)).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }
 
     var termosFiltrados: [Termo] {
         let busca = pesquisa.trimmingCharacters(in: .whitespacesAndNewlines)
         return termos.filter {
-            busca.isEmpty || $0.nome.localizedStandardContains(busca)
+            guard tagSelecionada.map($0.tags.contains) ?? true else { return false }
+            return busca.isEmpty || $0.nome.localizedStandardContains(busca)
                 || $0.significado.localizedStandardContains(busca)
                 || $0.area.localizedStandardContains(busca)
         }.sorted { $0.nome.localizedStandardCompare($1.nome) == .orderedAscending }
@@ -50,6 +56,9 @@ final class GlossarioViewModel: ObservableObject {
             }
             let resultado = try await NotionGlossarioService.buscar(token: token, fonte: fonte)
             termos = resultado.termos
+            if let tagSelecionada, !tags.contains(tagSelecionada) {
+                self.tagSelecionada = nil
+            }
             incompletos = resultado.incompletos
             carregou = true
         } catch is CancellationError {
