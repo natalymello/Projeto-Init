@@ -23,7 +23,15 @@ struct InitRootView: View {
                         }
                     }
             case .onboarding:
-                InitOnboardingView { screen = .quiz }
+                InitOnboardingView(
+                    onSkip: {
+                        onboardingCompleted = true
+                        screen = .main
+                    },
+                    onContinue: {
+                        screen = .quiz
+                    }
+                )
             case .quiz:
                 QuizView { _ in
                     onboardingCompleted = true
