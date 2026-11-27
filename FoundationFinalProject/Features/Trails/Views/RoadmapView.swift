@@ -16,6 +16,10 @@ struct RoadmapView: View {
         }.filter { !$0.localID.isEmpty && seen.insert($0.localID).inserted }
     }
 
+    private var canTakeQuiz: Bool {
+        !nodes.isEmpty && nodes.allSatisfy { status(for: $0) == .done }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if let error = store.errorMessage {
@@ -35,6 +39,7 @@ struct RoadmapView: View {
         .toolbar(.hidden, for: .tabBar)
         .onAppear { loadStatuses() }
         .onChange(of: currentTrail.key) { loadStatuses() }
+        .onChange(of: nodes.map(\.localID)) { loadStatuses() }
         .sheet(isPresented: $showingTrailQuiz) {
             TrailQuizView(trailKey: currentTrail.key, trailName: currentTrail.name)
         }
@@ -74,7 +79,7 @@ struct RoadmapView: View {
                     .accessibilityLabel("\(node.name), \(status(for: node).label)")
                     .position(layout.positions[node.localID] ?? .zero)
                 }
-                TrailEndPill { showingTrailQuiz = true }
+                TrailEndPill(isLocked: !canTakeQuiz) { showingTrailQuiz = true }
                     .position(layout.positions[TrailLayout.endKey] ?? .zero)
             }
             .frame(width: layout.canvas.width, height: layout.canvas.height)
