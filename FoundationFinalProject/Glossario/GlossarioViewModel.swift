@@ -20,8 +20,6 @@ final class GlossarioViewModel: ObservableObject {
         return termos.filter {
             guard tagSelecionada.map($0.tags.contains) ?? true else { return false }
             return busca.isEmpty || $0.nome.localizedStandardContains(busca)
-                || $0.significado.localizedStandardContains(busca)
-                || $0.area.localizedStandardContains(busca)
         }.sorted { $0.nome.localizedStandardCompare($1.nome) == .orderedAscending }
     }
 
