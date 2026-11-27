@@ -18,7 +18,6 @@ struct RoadmapView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            topBar
             if let error = store.errorMessage {
                 Text(error).font(.caption).foregroundStyle(Color("Azul-marinho-init")).padding(.horizontal)
             }
@@ -28,11 +27,11 @@ struct RoadmapView: View {
                 GeometryReader { geometry in
                     canvas(container: geometry.size)
                 }
-                
             }
         }
         .background(Color("Branco-Init").ignoresSafeArea())
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationTitle(currentTrail.name)
+        .navigationBarTitleDisplayMode(.large)
         .toolbar(.hidden, for: .tabBar)
         .onAppear { loadStatuses() }
         .onChange(of: currentTrail.key) { loadStatuses() }
@@ -80,22 +79,9 @@ struct RoadmapView: View {
             }
             .frame(width: layout.canvas.width, height: layout.canvas.height)
         }
+        .defaultScrollAnchor(.top)
         .scrollBounceBehavior(.basedOnSize)
         .id(currentTrail.key)
     }
 
-    private var topBar: some View {
-        HStack(spacing: 12) {
-            TrailMapBackButton()
-            Image(systemName: TrailStyle.symbol(name: currentTrail.name, fallback: currentTrail.icon))
-                .accessibilityHidden(true)
-            Text(currentTrail.name)
-                .accessibilityAddTraits(.isHeader)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .font(.system(size:22, weight: .semibold))
-        .foregroundStyle(Color("Azul-marinho-init"))
-        .padding(.horizontal, 16).padding(.vertical, 8)
-        
-    }
 }
