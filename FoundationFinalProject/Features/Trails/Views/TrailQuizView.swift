@@ -120,7 +120,7 @@ struct TrailQuizView: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-            .padding(24)
+            .padding(15)
             .frame(maxWidth: 520)
             .frame(maxWidth: .infinity)
         }
