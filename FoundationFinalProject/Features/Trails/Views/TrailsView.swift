@@ -41,18 +41,43 @@ struct TrailsView: View {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible())], spacing: 20) {
                         ForEach(remaining) { trail in card(trail) }
                     }
-                    Button { mostrandoQuiz = true } label: {
-                        Label(
-                            recommendedArea == nil ? "Descubra sua trilha ideal" : "Refazer quiz",
-                            systemImage: recommendedArea == nil ? "list.clipboard" : "arrow.clockwise"
-                        )
-                        .font(.title3.bold())
+                    if recommendedArea == nil {
+                        // Botão para descobrir a trilha ideal
+                        Button {
+                            mostrandoQuiz = true
+                        } label: {
+                            Label(
+                                "Descubra sua trilha ideal",
+                                systemImage: "list.clipboard"
+                            )
+                            .font(.title3.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 30)
+                            .foregroundStyle(Color("Branco-Init"))
+                            .background(TrailStyle.gradient, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+
+                    } else {
+                        // Botão menor para refazer o quiz
+                        Button {
+                            mostrandoQuiz = true
+                        } label: {
+                            Label(
+                                "Refazer quiz",
+                                systemImage: "arrow.clockwise"
+                            )
+                            .font(.title3)
+                            .padding(.horizontal, 28)
+                            .padding(.vertical, 16)
+                            .foregroundStyle(Color("Branco-Init"))
+                            .background(TrailStyle.gradient, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 30)
-                        .foregroundStyle(Color("Branco-Init"))
-                        .background(TrailStyle.gradient, in: RoundedRectangle(cornerRadius: 24))
+                        .padding(.top, 12)
+                        .padding(.bottom, 32)
                     }
-                    .buttonStyle(.plain)
                 }
                 .frame(maxWidth: 390)
                 .padding(.horizontal, 24)
