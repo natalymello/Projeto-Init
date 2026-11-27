@@ -72,6 +72,11 @@
             value = "40d8fc97-5e3a-80dd-9e9d-000bed28061f"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "NOTION_TRAIL_QUIZ_DATA_SOURCE_ID"
+            value = "4258fc97-5e3a-80a9-861d-000bcfd16221"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
