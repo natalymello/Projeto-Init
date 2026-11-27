@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TrailsView: View {
     var recommendedArea: QuizArea? = nil
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var mostrandoQuiz = false
     @StateObject private var store = TrailsStore()
 
@@ -22,6 +23,13 @@ struct TrailsView: View {
     }
 
     var body: some View {
+        let trails = remaining
+        let columnSpacing: CGFloat = 16
+        let centeredTrailID = recommendedArea == nil && !trails.count.isMultiple(of: 2)
+            ? trails.last?.id
+            : nil
+        let direction: CGFloat = layoutDirection == .leftToRight ? 1 : -1
+
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
@@ -38,8 +46,15 @@ struct TrailsView: View {
                     if let featured {
                         card(featured, featured: true)
                     }
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible())], spacing: 20) {
-                        ForEach(remaining) { trail in card(trail) }
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: columnSpacing), GridItem(.flexible())], spacing: 20) {
+                        ForEach(trails) { trail in
+                            card(trail)
+                                .visualEffect { content, geometry in
+                                    content.offset(x: trail.id == centeredTrailID
+                                        ? direction * (geometry.size.width + columnSpacing) / 2
+                                        : 0)
+                                }
+                        }
                     }
                     if recommendedArea == nil {
                         // Botão para descobrir a trilha ideal
@@ -86,7 +101,8 @@ struct TrailsView: View {
                 .frame(maxWidth: .infinity)
             }
             .background(TrailStyle.background.ignoresSafeArea())
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationTitle("Trilhas")
+            .navigationBarTitleDisplayMode(.large)
             .refreshable { await store.load() }
             .task { if store.trails.isEmpty { await store.load() } }
         }
