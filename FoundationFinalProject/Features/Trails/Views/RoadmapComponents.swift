@@ -70,17 +70,28 @@ struct RoadmapNodeView: View {
     }
 }
 struct TrailEndPill: View {
+    let isLocked: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text("Fazer questionário")
-                .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(Color("Branco-Init"))
-                .frame(width: TrailLayout.endSize.width, height: TrailLayout.endSize.height)
-                .background(RoadmapTheme.navy, in: RoundedRectangle(cornerRadius: 16))
-                .shadow(color: Color("Azul-marinho-init").opacity(0.25), radius: 4, y: 3)
+            VStack(spacing: 2) {
+                if isLocked {
+                    Label("Questionário bloqueado", systemImage: "lock.fill")
+                        .font(.system(size: 15, weight: .medium))
+                    Text("Conclua todos os nós")
+                        .font(.system(size: 12))
+                } else {
+                    Text("Fazer questionário")
+                        .font(.system(size: 17, weight: .medium))
+                }
+            }
+            .foregroundStyle(Color("Branco-Init"))
+            .frame(width: TrailLayout.endSize.width, height: TrailLayout.endSize.height)
+            .background(RoadmapTheme.navy.opacity(isLocked ? 0.7 : 1), in: RoundedRectangle(cornerRadius: 16))
+            .shadow(color: Color("Azul-marinho-init").opacity(0.25), radius: 4, y: 3)
         }
         .buttonStyle(.plain)
+        .disabled(isLocked)
     }
 }
