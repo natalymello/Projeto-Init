@@ -23,11 +23,31 @@ struct InitRootView: View {
                         }
                     }
             case .onboarding:
-                InitOnboardingView { screen = .quiz }
+                InitOnboardingView(
+                    onSkip: {
+                        onboardingCompleted = true
+                        screen = .main
+                    },
+                    onContinue: {
+                        screen = .quiz
+                    }
+                )
             case .quiz:
-                QuizView { _ in
-                    onboardingCompleted = true
-                    screen = .main
+                NavigationStack {
+                    QuizView { _ in
+                        onboardingCompleted = true
+                        screen = .main
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                screen = .onboarding
+                            } label: {
+                                Label("Voltar", systemImage: "chevron.backward")
+                            }
+                            .accessibilityLabel("Voltar ao onboarding")
+                        }
+                    }
                 }
             case .main:
                 mainTabs

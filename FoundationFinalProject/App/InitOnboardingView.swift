@@ -1,13 +1,14 @@
 import SwiftUI
 
 struct InitOnboardingView: View {
+    let onSkip: () -> Void
     let onContinue: () -> Void
 
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 0) {
-                    Button("Pular", action: onContinue)
+                    Button("Pular", action: onSkip)
                         .font(.headline)
                         .frame(minWidth: 44, minHeight: 44)
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -92,4 +93,4 @@ struct InitOnboardingView: View {
     }
 }
 
-#Preview { InitOnboardingView(onContinue: {}) }
+#Preview { InitOnboardingView(onSkip: {}, onContinue: {}) }
