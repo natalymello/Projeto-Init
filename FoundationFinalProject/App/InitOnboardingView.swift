@@ -35,23 +35,22 @@ struct InitOnboardingView: View {
     }
 
     private var introduction: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .center, spacing: 10) {
             Text("Seu início na tecnologia começa aqui!")
-                .font(.title2.weight(.semibold))
+                .multilineTextAlignment(.center)
+                .font(.title.weight(.semibold))
                 .accessibilityAddTraits(.isHeader)
-            Text("Descubra, explore e aprenda com o Init.")
-                .font(.body)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.vertical, 50)
     }
-
     private var features: some View {
-        VStack(alignment: .leading, spacing: 30) {
-            feature("Encontre sua área", detail: "Responda ao quiz e descubra a trilha ideal para você.", symbol: "target")
-            feature("Descomplique a tecnologia", detail: "Consulte o glossário e entenda os termos técnicos.", symbol: "book.closed")
-            feature("Trace sua trilha", detail: "Explore as trilhas e descubra o que estudar.", symbol: "signpost.right.and.left")
+        VStack(alignment: .leading, spacing: 50) {
+            feature("Descubra sua área", detail: "Responda ao quiz e descubra o seu caminho ideal no universo da tecnologia.", symbol: "target")
+            feature("Explore a tecnologia", detail: "Consulte o glossário e entenda os termos técnicos, descomplique seu aprendizado.", symbol: "book.closed")
+            feature("Estude e trace sua trilha", detail: "Explore as trilhas, organize seus estudos e aprimore seu conhecimento.", symbol: "signpost.right.and.left")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,maxHeight: .infinity,alignment: .center)
         .padding(.horizontal, 20)
         .padding(.vertical, 32)
         .foregroundStyle(Color("Branco-Init"))
@@ -62,7 +61,7 @@ struct InitOnboardingView: View {
     private func feature(_ title: String, detail: String, symbol: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: symbol)
-                .font(.title2)
+                .font(.system(size: 32))
                 .frame(width: 28)
                 .accessibilityHidden(true)
 
